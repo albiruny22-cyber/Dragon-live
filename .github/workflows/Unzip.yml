@@ -10,39 +10,41 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Setup Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
       - name: Extract project
         run: |
-          mkdir extracted
-          unzip -q NYXEN-DRAGON-Android-Project-V2.zip -d extracted
+          mkdir -p extracted
+          unzip -oq NYXEN-DRAGON-Android-Project-V2.zip -d extracted
+
+      - name: Fix Gradle build file
+        run: |
+          sed -i 's/\\n$//' extracted/NYXEN-DRAGON/build.gradle
 
       - name: Find Android project
         run: |
           PROJECT_FILE=$(find extracted -type f \( -name settings.gradle -o -name settings.gradle.kts \) | head -n 1)
           if [ -z "$PROJECT_FILE" ]; then
             echo "settings.gradle tidak ditemukan"
-            find extracted -maxdepth 4 -type f | head -100
             exit 1
           fi
           PROJECT_DIR=$(dirname "$PROJECT_FILE")
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Project ditemukan di: $PROJECT_DIR"
 
       - name: Build APK
         run: gradle -p "$PROJECT_DIR" assembleDebug
