@@ -1,0 +1,39 @@
+name: NYXEN DRAGON Android Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'NYXEN-DRAGON-Android-Project-V2.zip'
+      - '.github/workflows/Unzip.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Extract Project ZIP
+        run: |
+          unzip -o NYXEN-DRAGON-Android-Project-V2.zip -d extracted
+
+      - name: Build Android APK
+        run: |
+          cd extracted
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NYXEN-DRAGON-APK
+          path: extracted/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
